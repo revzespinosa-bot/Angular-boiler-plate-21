@@ -12,7 +12,6 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "@sendgrid/mail": "^8.1.6",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -22,9 +21,9 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.4",
-    "nodemailer": "^6.9.16",
     "rootpath": "^0.1.2",
     "sequelize": "^6.37.5",
+    "sib-api-v3-sdk": "^8.0.0",
     "swagger-ui-express": "^5.0.1",
     "yamljs": "^0.3.0"
   },

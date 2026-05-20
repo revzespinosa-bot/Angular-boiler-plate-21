@@ -38,7 +38,7 @@ All routes are prefixed with `/accounts`. Full schemas in
 - Sequelize (MySQL dialect) — works with TiDB Cloud, Aiven, Railway, etc.
 - bcryptjs (password hashing)
 - jsonwebtoken + express-jwt (access tokens)
-- nodemailer (verification + reset emails)
+- Brevo SDK (`sib-api-v3-sdk`) for verification + reset emails over HTTPS
 - Joi (request validation)
 - swagger-ui-express + yamljs (`/api-docs`)
 
@@ -75,11 +75,9 @@ production. Never commit real secrets.
 | `CORS_ORIGIN`   | Exact frontend URL — no trailing slash, no `*` (credentials require this).   |
 | `COOKIE_SECURE` | `true` in production over HTTPS.                                             |
 | `COOKIE_SAMESITE` | `none` for cross-site (Render frontend ↔ Render backend); `lax` locally.   |
-| `SMTP_HOST`     | e.g. `smtp.ethereal.email` or `sandbox.smtp.mailtrap.io`.                    |
-| `SMTP_PORT`     | `587` (STARTTLS) or `465` (SMTPS).                                           |
-| `SMTP_USER`     | SMTP username.                                                               |
-| `SMTP_PASS`     | SMTP password.                                                               |
+| `BREVO_API_KEY` | Brevo / Sendinblue API key for sending verification + reset emails over HTTPS. |
 | `EMAIL_FROM`    | "From" address on outbound emails.                                           |
+| `EMAIL_FROM_NAME` | Optional sender display name for outbound emails.                           |
 | `FRONTEND_URL`  | Base URL used to build verification + reset links in emails.                 |
 
 ## Deploying to Render

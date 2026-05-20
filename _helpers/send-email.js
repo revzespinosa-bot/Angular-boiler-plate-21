@@ -1,25 +1,39 @@
-const sgMail = require('@sendgrid/mail');
+const SibApiV3Sdk = require('sib-api-v3-sdk');
 
 module.exports = sendEmail;
 
-// Uses SendGrid's HTTPS API (port 443) instead of SMTP — Render free-tier
-// reliably blocks outbound SMTP but allows HTTPS, so this is the only
-// reliable path to email delivery from a free Render service.
-async function sendEmail({ to, subject, html, from = process.env.EMAIL_FROM }) {
-    if (!process.env.SENDGRID_API_KEY) {
-        throw new Error('SENDGRID_API_KEY is not set');
+// Uses Brevo / Sendinblue HTTPS transactional email API.
+// This avoids SMTP blocking on managed hosting and keeps verification email
+// delivery on the HTTPS port.
+async function sendEmail({ to, subject, html, from = process.env.EMAIL_FROM, fromName = process.env.EMAIL_FROM_NAME }) {
+    if (!process.env.BREVO_API_KEY) {
+        throw new Error('BREVO_API_KEY is not set');
     }
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-    const msg = { to, from, subject, html };
+    const client = SibApiV3Sdk.ApiClient.instance;
+    const apiKey = client.authentications['api-key'];
+    apiKey.apiKey = process.env.BREVO_API_KEY;
+
+    const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+
+    const sender = {
+        email: from,
+        name: fromName || undefined,
+    };
+
+    const message = new SibApiV3Sdk.SendSmtpEmail({
+        to: [{ email: to }],
+        sender,
+        subject,
+        htmlContent: html,
+    });
 
     try {
-        const [response] = await sgMail.send(msg);
-        console.log(`Email sent to ${to} (status ${response.statusCode})`);
+        const response = await apiInstance.sendTransacEmail(message);
+        console.log(`Brevo email sent to ${to}`);
         return response;
     } catch (err) {
-        // SendGrid attaches structured error info on .response.body
-        console.error('SendGrid send error:', err.response?.body || err.message);
+        console.error('Brevo send error:', err.response?.body || err.message || err);
         throw err;
     }
 }
