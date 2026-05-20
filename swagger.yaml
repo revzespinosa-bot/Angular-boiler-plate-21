@@ -1,0 +1,217 @@
+openapi: 3.0.0
+info:
+  title: Node.js Sign-up and Verification API
+  version: 1.0.0
+  description: Node.js + MySQL API with email sign-up, verification, JWT authentication, refresh tokens, and forgot/reset password.
+
+servers:
+  - url: http://localhost:4000
+    description: Local development
+  - url: https://angular21-auth-boilerplate-backend.onrender.com
+    description: Production (Render)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Account:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [Admin, User] }
+        created: { type: string, format: date-time }
+        updated: { type: string, format: date-time }
+        isVerified: { type: boolean }
+
+paths:
+  /accounts/authenticate:
+    post:
+      summary: Authenticate account credentials and return a JWT token + refresh token cookie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+              required: [email, password]
+      responses:
+        '200': { description: OK }
+        '400': { description: Email or password is incorrect }
+
+  /accounts/refresh-token:
+    post:
+      summary: Use the refresh token cookie to generate a new JWT and a new refresh token
+      responses:
+        '200': { description: OK }
+        '400': { description: Invalid token }
+
+  /accounts/revoke-token:
+    post:
+      summary: Revoke a refresh token
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Token revoked }
+
+  /accounts/register:
+    post:
+      summary: Register a new user account and send a verification email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                firstName: { type: string }
+                lastName: { type: string }
+                email: { type: string }
+                password: { type: string }
+                confirmPassword: { type: string }
+                acceptTerms: { type: boolean }
+              required: [title, firstName, lastName, email, password, confirmPassword, acceptTerms]
+      responses:
+        '200': { description: Registration successful }
+
+  /accounts/verify-email:
+    post:
+      summary: Verify a new account using the token from the verification email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token: { type: string }
+              required: [token]
+      responses:
+        '200': { description: Verification successful }
+        '400': { description: Verification failed }
+
+  /accounts/forgot-password:
+    post:
+      summary: Submit email to reset the password on an account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+              required: [email]
+      responses:
+        '200': { description: OK }
+
+  /accounts/validate-reset-token:
+    post:
+      summary: Validate the reset token from the password reset email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token: { type: string }
+              required: [token]
+      responses:
+        '200': { description: OK }
+        '400': { description: Invalid token }
+
+  /accounts/reset-password:
+    post:
+      summary: Reset the password for an account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token: { type: string }
+                password: { type: string }
+                confirmPassword: { type: string }
+              required: [token, password, confirmPassword]
+      responses:
+        '200': { description: Password reset successful }
+
+  /accounts:
+    get:
+      summary: Get all accounts (Admin only)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Account' }
+    post:
+      summary: Create a new account (Admin only)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                firstName: { type: string }
+                lastName: { type: string }
+                email: { type: string }
+                password: { type: string }
+                confirmPassword: { type: string }
+                role: { type: string, enum: [Admin, User] }
+              required: [title, firstName, lastName, email, password, confirmPassword, role]
+      responses:
+        '200': { description: Created }
+
+  /accounts/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      summary: Get an account by id
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: OK }
+    put:
+      summary: Update an account
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                firstName: { type: string }
+                lastName: { type: string }
+                email: { type: string }
+                password: { type: string }
+                confirmPassword: { type: string }
+                role: { type: string, enum: [Admin, User] }
+      responses:
+        '200': { description: OK }
+    delete:
+      summary: Delete an account
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Account deleted successfully }
