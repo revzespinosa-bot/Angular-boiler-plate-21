@@ -9,6 +9,9 @@ async function sendEmail({ to, subject, html, from = process.env.EMAIL_FROM, fro
     if (!process.env.BREVO_API_KEY) {
         throw new Error('BREVO_API_KEY is not set');
     }
+    if (!from) {
+        throw new Error('EMAIL_FROM is not set or email from address not provided');
+    }
 
     const client = SibApiV3Sdk.ApiClient.instance;
     const apiKey = client.authentications['api-key'];
@@ -18,8 +21,11 @@ async function sendEmail({ to, subject, html, from = process.env.EMAIL_FROM, fro
 
     const sender = {
         email: from,
-        name: fromName || undefined,
     };
+    // Only add name if provided
+    if (fromName) {
+        sender.name = fromName;
+    }
 
     const message = new SibApiV3Sdk.SendSmtpEmail({
         to: [{ email: to }],
