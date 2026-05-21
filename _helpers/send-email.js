@@ -2,9 +2,6 @@ const SibApiV3Sdk = require('sib-api-v3-sdk');
 
 module.exports = sendEmail;
 
-// Uses Brevo / Sendinblue HTTPS transactional email API.
-// This avoids SMTP blocking on managed hosting and keeps verification email
-// delivery on the HTTPS port.
 async function sendEmail({ to, subject, html, from = process.env.EMAIL_FROM, fromName = process.env.EMAIL_FROM_NAME }) {
     if (!process.env.BREVO_API_KEY) {
         throw new Error('BREVO_API_KEY is not set');
@@ -19,20 +16,19 @@ async function sendEmail({ to, subject, html, from = process.env.EMAIL_FROM, fro
 
     const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-    const sender = {
-        email: from,
-    };
-    // Only add name if provided
+    // Build the message by assigning properties on the instance
+    // (the constructor-object form drops fields in this SDK version)
+    const message = new SibApiV3Sdk.SendSmtpEmail();
+    message.sender = { email: from };
     if (fromName) {
-        sender.name = fromName;
+        message.sender.name = fromName;
     }
+    message.to = [{ email: to }];
+    message.subject = subject;
+    message.htmlContent = html;
 
-    const message = new SibApiV3Sdk.SendSmtpEmail({
-        to: [{ email: to }],
-        sender,
-        subject,
-        htmlContent: html,
-    });
+console.log('EMAIL_FROM value:', from);
+console.log('Message sender:', JSON.stringify(message.sender));
 
     try {
         const response = await apiInstance.sendTransacEmail(message);
